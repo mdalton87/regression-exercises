@@ -29,8 +29,8 @@ def new_zillow_data():
     sql_query = '''
                 SELECT *
                 FROM  properties_2017
-                JOIN predictions_2017 USING(id)
-                WHERE month(transactiondate) >= 05 and month(transactiondate) <= 08
+                JOIN predictions_2017 USING(parcelid)
+                WHERE month(transactiondate) >= 05 and month(transactiondate) <= 06
                 ;
                 '''
     
