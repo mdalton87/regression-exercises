@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import explore as ex
 
 # acquire
 from env import host, user, password
@@ -64,24 +65,38 @@ def get_zillow_data(cached=False):
 
 
 
-def wrangle_zillow(filter=1):
+def wrangle_zillow():
     '''
-
+    This functions creates a dataframe from the zillow dataset in the Codeup SQL database and preps the data for exploration. After retrieving the data, columns that contain > 15% null-values are dropped, then the dataframe is limited to the desired features, the parcelid is set to the index, columns names are renamed for clarity, rows with null-values are then dropped due to the low number compared to the dataset, the fips, zip code and year built feaures are converted to integers, and added an age of home feature that takes the year_built from the current year. Then outliers from the square_feet and tax_value are removed.
                  
     '''
-
+    df = get_zillow_data(cached=True)
+    df = df.dropna(axis=1,thresh=18653)
+    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips', 'lotsizesquarefeet','latitude', 'longitude', 'regionidzip', 'yearbuilt', 'taxvaluedollarcnt', 'transactiondate']
+    df = df[features]
+    df.set_index('parcelid', inplace=True)
+    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'lot_size_sqft', 'latitude', 'longitude', 'zip_code', 'year_built', 'tax_value', 'transaction_date']
+    df = df.dropna()
+    df.fips = df.fips.astype(int)
+    df.zip_code = df.zip_code.astype(int)
+    df.year_built = df.year_built.astype(int)
+    df['age_of_home'] = (2021 - df.year_built)
+    df = ex.remove_outliers(df, 'square_feet', multiplier=1.5)
+    df = ex.remove_outliers(df, 'tax_value', multiplier=1.5)
+    
+    return df
 
 
 # Split Data
 
 def impute_mode():
    '''
-   impute mode for taxvaluedollarcnt
+   impute mode for tax_value
    '''
    imputer = SimpleImputer(strategy='most_frequent')
-   train[['taxvaluedollarcnt']] = imputer.fit_transform(train[['taxvaluedollarcnt']])
-   validate[['taxvaluedollarcnt']] = imputer.transform(validate[['taxvaluedollarcnt']])
-   test[['taxvaluedollarcnt']] = imputer.transform(test[['taxvaluedollarcnt']])
+   train[['tax_value']] = imputer.fit_transform(train[['tax_value']])
+   validate[['tax_value']] = imputer.transform(validate[['tax_value']])
+   test[['tax_value']] = imputer.transform(test[['tax_value']])
    return train, validate, test
 
 

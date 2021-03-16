@@ -5,14 +5,6 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from scipy import stats
 
-def train_validate_test_split(df, target, seed=42):
-    '''
-    This function takes in a dataframe, the name of the target variable (for stratification purposes), and an integer for a setting a seed and splits the data into train, validate and test. Test is 20% of the original dataset, validate is .30*.80= 24% of the original dataset, and train is .70*.80= 56% of the original dataset. The function returns, in this order, train, validate and test dataframes. 
-    '''
-    train_and_validate, test = train_test_split(df, random_state=seed)
-    train, validate = train_test_split(train_and_validate, random_state=seed)
-    return train, validate, test
-
 
 def explore_univariate(train, cat_vars, quant_vars):
     for var in cat_vars:
@@ -22,12 +14,12 @@ def explore_univariate(train, cat_vars, quant_vars):
         p, descriptive_stats = explore_univariate_quant(train, col)
         plt.show(p)
         print(descriptive_stats)
-        
+
 def explore_bivariate(train, target, cat_vars, quant_vars):
     for cat in cat_vars:
-        explore_bivariate_categorical(train, target, cat)
+        explore_bivariate_categorical(train, 'tax_value', cat)
     for quant in quant_vars:
-        explore_bivariate_quant(train, target, quant)
+        explore_bivariate_quant(train, 'tax_value', quant)
 
 def explore_multivariate(train, target, cat_vars, quant_vars):
     '''
@@ -36,9 +28,9 @@ def explore_multivariate(train, target, cat_vars, quant_vars):
     plt.show()
     violin = plot_violin_grid_with_color(train, target, cat_vars, quant_vars)
     plt.show()
-    pair = sns.pairplot(data=train, vars=quant_vars, hue=target)
+    pair = sns.pairplot(data=train, vars=quant_vars, hue='tax_value')
     plt.show()
-    plot_all_continuous_vars(train, target, quant_vars)
+    plot_all_continuous_vars(train, 'tax_value', quant_vars)
     plt.show()    
 
 
@@ -73,10 +65,11 @@ def explore_univariate_quant(train, quant_var):
     p = plt.boxplot(train[quant_var])
     p = plt.title(quant_var)
     return p, descriptive_stats
-    
+
 def freq_table(train, cat_var):
     '''
-    for a given categorical variable, compute the frequency count and percent split and return a dataframe of those values along with the different classes. 
+    for a given categorical variable, compute the frequency count and percent split
+    and return a dataframe of those values along with the different classes. 
     '''
     class_labels = list(train[cat_var].unique())
 
@@ -93,13 +86,16 @@ def freq_table(train, cat_var):
 
 def explore_bivariate_categorical(train, target, cat_var):
     '''
-    takes in categorical variable and binary target variable, returns a crosstab of frequencies runs a chi-square test for the proportions and creates a barplot, adding a horizontal line of the overall rate of the target. 
+    takes in categorical variable and binary target variable, 
+    returns a crosstab of frequencies
+    runs a chi-square test for the proportions
+    and creates a barplot, adding a horizontal line of the overall rate of the target. 
     '''
     print(cat_var, "\n_____________________\n")
     ct = pd.crosstab(train[cat_var], train[target], margins=True)
     chi2_summary, observed, expected = run_chi2(train, cat_var, target)
     p = plot_cat_by_target(train, target, cat_var)
-    
+
     print(chi2_summary)
     print("\nobserved:\n", ct)
     print("\nexpected:\n", expected)
@@ -141,7 +137,7 @@ def plot_cat_by_target(train, target, cat_var):
     overall_rate = train[target].mean()
     p = plt.axhline(overall_rate, ls='--', color='gray')
     return p
-    
+
 
 ## Bivariate Quant
 
@@ -172,7 +168,7 @@ def compare_means(train, target, quant_var, alt_hyp='two-sided'):
 def plot_all_continuous_vars(train, target, quant_vars):
     '''
     Melt the dataset to "long-form" representation
-    boxenplot of measurement x value with color representing churn. 
+    boxenplot of measurement x value with color representing tax_value. 
     '''
     my_vars = [item for sublist in [quant_vars, [target]] for item in sublist]
     sns.set(style="whitegrid", palette="muted")
@@ -193,7 +189,7 @@ def plot_violin_grid_with_color(train, target, cat_vars, quant_vars):
             ax[i].set_ylabel(quant)
             ax[i].set_title(cat)
         plt.show()
-    
+
 def plot_swarm_grid_with_color(train, target, cat_vars, quant_vars):
     cols = len(cat_vars)
     for quant in quant_vars:
@@ -203,7 +199,9 @@ def plot_swarm_grid_with_color(train, target, cat_vars, quant_vars):
             ax[i].set_xlabel('')
             ax[i].set_ylabel(quant)
             ax[i].set_title(cat)
-        plt.show()
+        plt.show() 
+                                      
+
  
 def remove_outliers(df, col, multiplier=1.5):
     q1 = df[col].quantile(.25)
@@ -213,12 +211,4 @@ def remove_outliers(df, col, multiplier=1.5):
     lower_bound = q1 - (multiplier * iqr)
     df = df[df[col] > lower_bound]
     df = df[df[col] < upper_bound]
-    return df
-        
-        
-# From explore_telco exercise
-
-
-def month_to_years(df):
-    df['tenure_years'] = (df.tenure / 12).astype(int)
     return df
