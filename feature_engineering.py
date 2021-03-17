@@ -21,18 +21,35 @@ from pydataset import data
 
 
 def select_kbest(x, y, k):
+    '''
+    Parameters:
+    x = dataframe
+    y = target,
+    k = # features to return
+    '''
+    
     X_train, y_train, X_validate, y_validate, X_test, y_test = train_validate_test(x, y)
     object_cols = get_object_cols(x)
     numeric_cols = get_numeric_X_cols(X_train, object_cols)
     X_train_scaled, X_validate_scaled, X_test_scaled = min_max_scale(X_train, X_validate, X_test, numeric_cols)
+    
+    
     f_selector = SelectKBest(f_regression, k)
     f_selector.fit(X_train_scaled, y_train)
     feature_mask = f_selector.get_support()
     f_feature = X_train_scaled.iloc[:,feature_mask].columns.tolist()
+    
+    
     return f_feature
 
 
 def rfe(x, y, k):
+    '''
+    Parameters:
+    x = dataframe
+    y = target,
+    k = # features to return
+    '''
     X_train, y_train, X_validate, y_validate, X_test, y_test = train_validate_test(x, y)
     object_cols = get_object_cols(x)
     numeric_cols = get_numeric_X_cols(X_train, object_cols)
