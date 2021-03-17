@@ -1,13 +1,23 @@
 import pandas as pd
 import numpy as np
-import os
-
-# acquire
-from env import host, user, password
-from pydataset import data
+import matplotlib.pyplot as plt
+from scipy import stats
 
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_squared_error, r2_score, explained_variance_score
+from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import f_regression, RFE, SelectKBest
+import sklearn.preprocessing
+from sklearn.preprocessing import MinMaxScaler 
+
+from env import host, user, password
+
+from math import sqrt
+import seaborn as sns
+import warnings
+from pydataset import data
+
 
 # Aquire Data
 
@@ -205,3 +215,9 @@ def prep_telco_data(x):
                                        random_state=123)
     train, validate, test = impute_mode()
     return train, validate, test
+
+
+
+
+# Ryans wrangle for feature engineering
+
