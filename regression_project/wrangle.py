@@ -37,8 +37,10 @@ def new_zillow_data():
                 SELECT *
                 FROM  properties_2017
                 JOIN predictions_2017 USING(parcelid)
-                WHERE month(transactiondate) >= 05 and month(transactiondate) <= 06
-                ;
+                WHERE transactiondate >= "2017-05-01" AND transactiondate <= "2017-06-30"
+                    AND propertylandusetypeid BETWEEN 260 AND 266
+                    OR propertylandusetypeid BETWEEN 273 AND 279
+                    AND NOT propertylandusetypeid = 274;
                 '''
     
     return pd.read_sql(sql_query, get_connection('zillow'))
@@ -77,10 +79,7 @@ def wrangle_zillow():
     '''
     df = get_zillow_data(cached=True)
     
-    df = df[df.propertylandusetypeid.between(260, 267)]
-    df.propertylandusetypeid.dropna(axis=0, inplace=True)
-    
-    df = df.dropna(axis=1,thresh=18653)
+    df = df.dropna(axis=1,thresh=17435)
     
     features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips','latitude', 'longitude', 'regionidzip', 'yearbuilt', 'taxvaluedollarcnt', 'transactiondate']
     df = df[features]
@@ -96,43 +95,67 @@ def wrangle_zillow():
     # Stolen from David Berchelmann
     df['age_of_home'] = (2021 - df.year_built) 
     
-#     df = ex.remove_outliers(df, 'square_feet', multiplier=1.5)
-    df = ex.remove_outliers(df, 'tax_value', multiplier=1.5)
+#     df = remove_outliers(df, 'square_feet', multiplier=1.5)
+#     df = remove_outliers(df, 'tax_value', 1.5)
     
     return df
 
 
+
+def remove_outliers(df, col, multiplier):
+    q1 = df[col].quantile(.25)
+    q3 = df[col].quantile(.75)
+    iqr = q3 - q1
+    upper_bound = q3 + (multiplier * iqr)
+    lower_bound = q1 - (multiplier * iqr)
+    df = df[df[col] > lower_bound]
+    df = df[df[col] < upper_bound]
+    return df
+
+
+
 # Split Data
 
-def impute_mode():
-   '''
-   impute mode for tax_value
-   '''
-   imputer = SimpleImputer(strategy='most_frequent')
-   train[['tax_value']] = imputer.fit_transform(train[['tax_value']])
-   validate[['tax_value']] = imputer.transform(validate[['tax_value']])
-   test[['tax_value']] = imputer.transform(test[['tax_value']])
-   return train, validate, test
+def impute_mode(df):
+    '''
+    impute mode for regionidzip
+    '''
+    train, validate, test = train_validate_test_split(df, seed=123)
+    imputer = SimpleImputer(strategy='most_frequent')
+    train[['regionidzip']] = imputer.fit_transform(train[['regionidzip']])
+    validate[['regionidzip']] = imputer.transform(validate[['regionidzip']])
+    test[['regionidzip']] = imputer.transform(test[['regionidzip']])
+    return train, validate, test
 
 
-
-def train_validate_test_split(df, seed=123):
+def train_validate_test_split(df, target, seed):
+    
     train_and_validate, test = train_test_split(
         df, test_size=0.2, random_state=seed)
     train, validate = train_test_split(
         train_and_validate,
         test_size=0.3,
-        random_state=seed,
-    )
-    return train, validate, test
+        random_state=seed)
+    
+    # Split
+    X_train = train.drop(columns=[target])
+    y_train = train[target]
+    
+    X_validate = validate.drop(columns=[target])
+    y_validate = validate[target]
+    
+    X_test = test.drop(columns=[target])
+    y_test = test[target]
+    
+    return train, validate, test, X_train, y_train, X_validate, y_validate, X_test, y_test
 
 
 def prep_zillow_data():
     df = wrangle_zillow()
-    train_validate, test = train_test_split(df, test_size=.2, random_state=123)
+    train_validate, test = train_test_split(df, test_size=.2, random_state=42)
     train, validate = train_test_split(train_validate, 
                                        test_size=.3, 
-                                       random_state=123)
+                                       random_state=42)
     train, validate, test = impute_mode()
     return train, validate, test
 
@@ -272,3 +295,6 @@ def get_object_cols(df):
     object_cols = df.iloc[:, mask].columns.tolist()
     
     return object_cols
+
+
+

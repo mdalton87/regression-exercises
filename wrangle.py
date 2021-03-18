@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
+
 from sklearn.model_selection import train_test_split
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_squared_error, r2_score, explained_variance_score
@@ -17,6 +18,7 @@ from math import sqrt
 import seaborn as sns
 import warnings
 from pydataset import data
+import os
 
 
 # Aquire Data
@@ -184,19 +186,19 @@ def wrangle_telco(filter=1):
 
 # Split Data
 
-def impute_mode():
-   '''
-   impute mode for churn
-   '''
-   imputer = SimpleImputer(strategy='most_frequent')
-   train[['total_charges']] = imputer.fit_transform(train[['total_charges']])
-   validate[['total_charges']] = imputer.transform(validate[['total_charges']])
-   test[['total_charges']] = imputer.transform(test[['total_charges']])
-   return train, validate, test
+# def impute_mode():
+#     '''
+#     impute mode for churn
+#     '''
+#     imputer = SimpleImputer(strategy='most_frequent')
+#     train[['total_charges']] = imputer.fit_transform(train[['total_charges']])
+#     validate[['total_charges']] = imputer.transform(validate[['total_charges']])
+#     test[['total_charges']] = imputer.transform(test[['total_charges']])
+#     return train, validate, test
 
 
 
-def train_validate_test_split(df, seed=123):
+def train_validate_test_split(df, seed=42):
     train_and_validate, test = train_test_split(
         df, test_size=0.2, random_state=seed)
     train, validate = train_test_split(
@@ -209,11 +211,11 @@ def train_validate_test_split(df, seed=123):
 
 def prep_telco_data(x):
     df = wrangle_telco(filter=x)
-    train_validate, test = train_test_split(df, test_size=.2, random_state=123)
+    train_validate, test = train_test_split(df, test_size=.2, random_state=42)
     train, validate = train_test_split(train_validate, 
                                        test_size=.3, 
-                                       random_state=123)
-    train, validate, test = impute_mode()
+                                       random_state=42)
+#     train, validate, test = impute_mode()
     return train, validate, test
 
 

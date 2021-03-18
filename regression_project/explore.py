@@ -202,8 +202,7 @@ def plot_swarm_grid_with_color(train, target, cat_vars, quant_vars):
         plt.show() 
                                       
 
- 
-def remove_outliers(df, col, multiplier=1.5):
+def remove_outliers(df, col, multiplier):
     q1 = df[col].quantile(.25)
     q3 = df[col].quantile(.75)
     iqr = q3 - q1
