@@ -37,7 +37,7 @@ def new_zillow_data():
                 SELECT *
                 FROM  properties_2017
                 JOIN predictions_2017 USING(parcelid)
-                WHERE transactiondate >= "2017-05-01" AND transactiondate <= "2017-06-30"
+                WHERE transactiondate >= "2017-05-01" AND transactiondate <= "2017-08-31"
                     AND propertylandusetypeid BETWEEN 260 AND 266
                     OR propertylandusetypeid BETWEEN 273 AND 279
                     AND NOT propertylandusetypeid = 274;
@@ -79,27 +79,45 @@ def wrangle_zillow():
     '''
     df = get_zillow_data(cached=True)
     
-    df = df.dropna(axis=1,thresh=17435)
+    thresh = df.shape[0] - (df.shape[0] * .15)
+    df = df.dropna(axis=1,thresh=thresh)
     
-    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips','latitude', 'longitude', 'regionidzip', 'yearbuilt', 'taxvaluedollarcnt', 'transactiondate']
+    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt', 'transactiondate']
     df = df[features]
     df.set_index('parcelid', inplace=True)
-    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'latitude', 'longitude', 'zip_code', 'year_built', 'tax_value', 'transaction_date']
+    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'latitude', 'longitude', 'year_built', 'tax_value', 'transaction_date']
     
     df = df.dropna()
     
     df.fips = df.fips.astype(int)
-    df.zip_code = df.zip_code.astype(int)
     df.year_built = df.year_built.astype(int)
     
     # Stolen from David Berchelmann
-    df['age_of_home'] = (2021 - df.year_built) 
+    df['age_of_home'] = (2021 - df.year_built)
     
-#     df = remove_outliers(df, 'square_feet', multiplier=1.5)
-#     df = remove_outliers(df, 'tax_value', 1.5)
+    df = remove_outliers(df, 'square_feet', 2.5)
+    df = remove_outliers(df, 'tax_value', 1.5)
     
+    df['price_per_sqft'] = (df.tax_value / df.square_feet)
     return df
 
+
+def tax_rate_distribution():
+    df = get_zillow_data(cached=True)
+    df.set_index('parcelid', inplace=True)
+    features = ['fips', 'taxvaluedollarcnt', 'taxamount']
+    df = df[features]
+    
+    df.columns = ['fips', 'tax_value', 'tax_amount']
+    
+    df = df.dropna()
+    
+    df['tax_rate'] = (df.tax_amount / df.tax_value)
+    
+    df = remove_outliers(df, 'tax_rate', 1.5)
+    df = remove_outliers(df, 'tax_value', 1.5)
+    
+    return df
 
 
 def remove_outliers(df, col, multiplier):
@@ -130,6 +148,7 @@ def impute_mode(df):
 
 def train_validate_test_split(df, target, seed):
     
+    # Train, Validate, and test
     train_and_validate, test = train_test_split(
         df, test_size=0.2, random_state=seed)
     train, validate = train_test_split(
@@ -166,10 +185,11 @@ def prep_zillow_data():
 
 def select_kbest(x, y, k):
     '''
+    This function takes in a dataframe, a target, and a number that is <= total number of features. The dataframe is split and scaled, the features are separated into objects and numberical columns, Finally the Select KBest test is run and returned.
     Parameters:
-    x = dataframe
-    y = target,
-    k = # features to return
+        x = dataframe
+        y = target,
+        k = # features to return
     '''
     X_train, y_train, X_validate, y_validate, X_test, y_test = train_validate_test(x, y)
     object_cols = get_object_cols(x)
@@ -185,6 +205,7 @@ def select_kbest(x, y, k):
 
 def rfe(x, y, k):
     '''
+    This function takes in a dataframe, a target, and a number that is <= total number of features. The dataframe is split and scaled, the features are separated into objects and numberical columns, Finally the RFE test is run and returned.
     Parameters:
     x = dataframe
     y = target,
