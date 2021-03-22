@@ -82,23 +82,24 @@ def wrangle_zillow():
     thresh = df.shape[0] - (df.shape[0] * .15)
     df = df.dropna(axis=1,thresh=thresh)
     
-    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt', 'transactiondate']
+    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt']
     df = df[features]
     df.set_index('parcelid', inplace=True)
-    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'latitude', 'longitude', 'year_built', 'tax_value', 'transaction_date']
+    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'latitude', 'longitude', 'year_built', 'tax_value']
     
     df = df.dropna()
     
     df.fips = df.fips.astype(int)
     df.year_built = df.year_built.astype(int)
-    
-    # Stolen from David Berchelmann
-    df['age_of_home'] = (2021 - df.year_built)
-    
+        
     df = remove_outliers(df, 'square_feet', 2.5)
-    df = remove_outliers(df, 'tax_value', 1.5)
+    df = remove_outliers(df, 'tax_value', 2.5)
     
-    df['price_per_sqft'] = (df.tax_value / df.square_feet)
+    df['age_of_home'] = (2021 - df.year_built)
+    df['beds_and_baths'] = (df.bedrooms + df.bathrooms)
+    df['beds_per_sqft'] = (df.bedrooms / df.square_feet)
+    df['baths_per_sqft'] = (df.bathrooms / df.square_feet)
+    
     return df
 
 
