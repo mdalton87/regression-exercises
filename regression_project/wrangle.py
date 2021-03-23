@@ -37,10 +37,10 @@ def new_zillow_data():
                 SELECT *
                 FROM  properties_2017
                 JOIN predictions_2017 USING(parcelid)
-                WHERE transactiondate >= "2017-05-01" AND transactiondate <= "2017-08-31"
-                    AND propertylandusetypeid BETWEEN 260 AND 266
-                    OR propertylandusetypeid BETWEEN 273 AND 279
-                    AND NOT propertylandusetypeid = 274;
+                WHERE year(transactiondate) = 2017
+                    AND month(transactiondate) >= 05 AND month(transactiondate) <= 08
+                AND propertylandusetypeid BETWEEN 260 AND 266
+;	
                 '''
     
     return pd.read_sql(sql_query, get_connection('zillow'))
@@ -70,12 +70,9 @@ def get_zillow_data(cached=False):
 # Prepare Data
 
 
-
-
-
 def wrangle_zillow():
     '''
-    This functions creates a dataframe from the zillow dataset in the Codeup SQL database and preps the data for exploration. After retrieving the data, records removed that are not single unit homes, columns that contain > 15% null-values are dropped, then the dataframe is limited to the desired features, the parcelid is set to the index, columns names are renamed for clarity, rows with null-values are then dropped due to the low number compared to the dataset, the fips, zip code and year built feaures are converted to integers, and added an age of home feature that takes the year_built from the current year. Then outliers from the square_feet and tax_value are removed.             
+This functions creates a dataframe from the zillow dataset in the Codeup SQL database and preps the data for exploration. The SQL query filters records by date and single unit homes, features that contain > 15% null-values are immediately dropped, then the dataframe is limited to the desired features, the parcelid is set to the index, columns names are renamed for clarity, rows with null-values are then dropped due to the low number compared to the dataset, the fips, zip code and year built feaures are converted to integers, outliers are then removed from square_feet and tax_value, and finally I added new features: age_of_home, beds_and_baths, beds_per_sqft, baths_per_sqft              
     '''
     df = get_zillow_data(cached=True)
     
@@ -104,6 +101,9 @@ def wrangle_zillow():
 
 
 def tax_rate_distribution():
+    '''
+This function creates the dataframe used to calculate the tax distribution rate per county. It takes in the cached zillow dataset, sets the parcelid as the index, makes the features list in order to limit the dataframe, renames the columns for clarity, drops null values, creates the tax_rate feature, and removed outliers from tax_rate and tx_value.
+    '''
     df = get_zillow_data(cached=True)
     df.set_index('parcelid', inplace=True)
     features = ['fips', 'taxvaluedollarcnt', 'taxamount']
