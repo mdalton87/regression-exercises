@@ -1,10 +1,22 @@
-# Zillow® Project - readme.md
+# <a name="top"></a>Zillow® Project - readme.md
 ![](http://zillow.mediaroom.com/image/Zillow_Wordmark_Blue_RGB.jpg)
 
 ***
+[[Project Description](#project_description)]
+[[Project Planning](#planning)]
+[[Key Findings](#findings)]
+[[Data Dictionary](#dictionary)]
+[[Data Acquire, Prep, and Exploration](#wrangle)]
+[[Statistical Analysis](#stats)]
+[[Modeling](#model)]
+[[Conclusion](#conclusion)]
+___
 
-## Project Description:
+***
+## <a name="project_description"></a>Project Description:
+[[Back to top](#top)]
 - The purpose of this project is to build a machine learning model that predicts the value of single unit properties that the tax district assesses using the property data from properties sold and purchased from May-August, 2017.
+- 
 
 ## Goals
 
@@ -21,7 +33,52 @@ The goals of the project are to answer the questions and deliver the following:
 - Clearly state your starting hypotheses (and add the testing of these to your task list).
 
 ***
-## Data Dictionary
+## <a name="planning"></a>Project Planning: 
+[[Back to top](#top)]
+
+### Projet Outline:
+- Acquisiton of data through Codeup SQL Server, using env.py file with username, password, and host
+- Prepare and clean data with python - Jupyter Labs Notebook
+- Explore data
+    - if value are what the dictionary says they are
+    - null values
+        - are the fixable or should they just be deleted
+    - categorical or continuous values
+    - Make graphs that show 
+- Run statistical analysis
+- Model data 
+- Test Data
+- Conclude results
+        
+### Hypothesis
+- I will get a R<sup>2</sup> > .40
+- square feet will be the best driver for tax value
+- total number of beds and baths will be better driver for tax value than either bedrooms or bathrooms alone. 
+
+### Target variable
+- tax_value 
+
+### Need to haves:
+- bedrooms
+- bathrooms
+- square_feet
+
+### Nice to haves:
+- latitude 
+- longitude
+- zip_code (regionidzip)
+    - not used because the zip codes did not match to the region in the data
+- A completed dataset with no null values
+
+***
+## <a name="findings"></a>Key Findings:
+[[Back to top](#top)]
+- My best model was the Polynomial Regression model with a power of 2, 
+
+
+***
+## <a name="dictionary"></a>Data Dictionary  
+[[Back to top](#top)]
 
 ### Data for Predicting Tax Value of Property
 ---
@@ -53,7 +110,8 @@ The goals of the project are to answer the questions and deliver the following:
 
 
 ***
-## Data 
+## <a name="wrangle"></a>Data Acquire, Preparation, and Exploration
+[[Back to top](#top)]
 
 ### Acqisition and Preparation
 - wrangle.py
@@ -112,15 +170,10 @@ The goals of the project are to answer the questions and deliver the following:
 - beds_per_sqft
 - baths_per_sqft
 
-
-***   
-
-## Visualizations:
-
-
 ***
 
-## Statistical Analysis
+## <a name="stats"></a>Statistical Analysis
+[[Back to top](#top)]
 
 ### Correlation Test
  - Used to check if two samples are related. They are often used for feature selection and multivariate analysis in data preprocessing and exploration.
@@ -199,7 +252,8 @@ The goals of the project are to answer the questions and deliver the following:
     - I can move forward with the H<sub>1</sub> indicating that there is a difference in the tax_rates of LA County compared to all 3 counties.
 
 ***
-## Modeling:
+## <a name="model"></a>Modeling:
+[[Back to top](#top)]
 
 Regression is supervised machine learning technique for predicting a continuous target variable. Since the target, tax_value, is a continuous variable regression model are the ideal choice for this project.
 
@@ -403,6 +457,7 @@ print("RMSE for LassoLars Model\nOut-of-Sample Performance: ", rmse_test)
 
 ***
 
-## Key Takaways
+## <a name="conclusion"></a>Conclusion:
+[[Back to top](#top)]
 
-- 
+ 
