@@ -31,9 +31,8 @@ The goals of the project are to answer the questions and deliver the following:
 | bathroomcnt | Number of bathrooms in home including fractional bathrooms | float |
 | bedroomcnt | Number of bedrooms in home | float |
 | square_feet | Calculated total finished living area of the home | float |
-| fips | Federal Information Processing Standard code -  see https://en.wikipedia.org/wiki/FIPS_county_code for more details | int |
-| latitude | Latitude of the middle of the parcel multiplied by 10e6 | float |
-| longitude | Longitude of the middle of the parcel multiplied by 10e6 | float |
+| latitude | Latitude of the middle of the parcel multiplied by 10<sup>6</sup> | float |
+| longitude | Longitude of the middle of the parcel multiplied by 10<sup>6</sup> | float |
 | year_built | The Year the principal residence was built | int |
 | tax_value* | The total tax assessed value of the parcel | float |
 | age_of_home | year_built minus 2021 | int |
@@ -79,334 +78,331 @@ The goals of the project are to answer the questions and deliver the following:
 | min_max_scale(X_train, X_validate, X_test, numeric_cols) | This function takes in 3 dataframes with the same columns, a list of numeric column names (because the scaler can only work with numeric columns), and fits a min-max scaler to the first dataframe and transforms all 3 dataframes using that scaler. It returns 3 dataframes with the same column names and scaled values. 
 
 
+### Select K Best Results:
+- bathrooms
+- bedrooms
+- square_feet
+- year_built
+- age_of_home
+- beds_and_baths
+- beds_per_sqft
 
-****
-***
-****
+### RFE Results:
+- bathrooms
+- bedrooms
+- square_feet
+- year_built
+- age_of_home
+- beds_and_baths
+- baths_per_sqft
 
-### Univariate:
-Established variables for quant_vars, cat_vars and target for future exploratory use.
-```json
-{
-quant_vars = ['tenure','monthly_charges','total_charges']
-cat_vars = list((df.columns).drop(quant_vars))
-target = 'churn'
-}
-```
-```json
-{
-explore.explore_univariate(train, cat_vars, quant_vars)
-}
-```
-#### Observations:
-- There are significantly more non-senior citizens than senior citizens
-- There are a lot more customers with dependents
-- Significantly more customers with phone service than without
-- Less have online security, online backup, device protection, and tech support
-- A lot more people churn than stay
-- More customers are Month-to-month than in contracts
-- Electronis check is the most popular payment method
+### Object_cols:
+- Yeilds an empty list
+- Used in order to run numeric_cols function without issues
 
-#### Questions:
-- Customers with phone service that have multiple lines?
-- Customers with internet that have online services (i.e. online_security, online_backup, device_protection, tech_support, streaming_tv, streaming_movies)
+### Numeric_cols:
+- bathrooms
+- bedrooms
+- square_feet
+- latitude
+- longitude
+- year_built
+- age_of_home
+- beds_and_baths
+- beds_per_sqft
+- baths_per_sqft
 
-### Bivariate:
-Initially ran the explore_bivariate function and noticed a pattern. I decided to act limit the categorical variables and re-run the function.
-```json
-{
-cat_vars = ['online_security','online_backup','device_protection','tech_support','streaming_tv','streaming_movies']
-}
-```
-```json
-{
-explore.explore_bivariate(train, target, cat_vars, quant_vars)
-}
-```
-#### Observations:
-- Variables with very low p-values (when scientific notation is used)
-    - senior, partner, dependents, online_security, tech_support, paperless_billing, ***month-to_month***, fiber_optic_internet, one_year, two_year
-- Low p-values (well below 0.05 but able to read without scientific notation)
-    - online_backup, device_protection, streaming_tv, streaming_movies, 
-- Barely passes 95% confidence (very close to alpha - 0.05)
-    - multiple lines
-- Does not pass
-    - gender, phone_service
-- Vast majority of churn happens before 30 months
-- higher monthly bill increases churn
-
-#### Questions:
-- Do people with all online services churn more than customers without all of the online services?
-- Are the really low p-values a good starting point?
-
-***
-## Question:
-
-### Does the amount of online services affect churn rates of our customers with internet service?
-#### Online services are:
-   - online security
-   - online backup
-   - device protection
-   - tech supprt
-   - streaming tv
-   - streaming movies
 
 ***   
-## Answering the question:
-### Cleaning train, validate and test. 
-- Only need customers with internet service 
-```json
-{
-train = train[train.internet_service_type != 'None']
-validate = validate[validate.internet_service_type != 'None']
-test = test[test.internet_service_type != 'None']
-}
-```
-- Need to remove unecessary information for statistics and modeling
-```json
-{
-dropcols = ['internet_service_type','senior_citizen','partner','dependents','tenure','phone_service','multiple_lines','paperless_billing','monthly_charges','total_charges','contract_type','payment_type','gender_male','one_year_contract','two_year_contract','credit_card_payment','e_check_payment','mailed_check_payment']
-train = train.drop(columns=dropcols)
-validate = validate.drop(columns=dropcols)
-test = test.drop(columns=dropcols)
-}
-```
-- Set the index to 'customer_id'
-```json
-{
-train.set_index('customer_id')
-validate.set_index('customer_id')
-test.set_index('customer_id')
-}
-```
-- Add a column that adds the number of online services that our internet customers have.
-```json
-{
-train = train.assign(n_services = train[train.columns[1:7]].sum(axis=1))
-validate = validate.assign(n_services = validate[validate.columns[1:7]].sum(axis=1))
-test = test.assign(n_services = test[test.columns[1:7]].sum(axis=1))
-}
-```
+
+## Visualizations:
+
 
 ***
-## Visualize the question:
-Below is the code I used to create better visualizations than the explore_bivariate function could produce.
-```json
-{
-features = ['online_security', 'online_backup', 'device_protection']
-_, ax = plt.subplots(nrows=1, ncols=3, figsize=(16, 6), sharey=True)
-for i, feature in enumerate(features):
-    sns.barplot(feature, 'churn', data=train, ax=ax[i])
-    ax[i].set_xlabel('')
-    ax[i].set_ylabel('Churn Rate')
-    ax[i].set_title(feature)
-    ax[i].axhline(train.churn.mean(), ls='--', color='grey')
-}
-```
-```json
-{
-features = ['tech_support', 'streaming_tv', 'streaming_movies']
-_, ax = plt.subplots(nrows=1, ncols=3, figsize=(16, 6), sharey=True)
-for i, feature in enumerate(features):
-    sns.barplot(feature, 'churn', data=train, ax=ax[i])
-    ax[i].set_xlabel('')
-    ax[i].set_ylabel('Churn Rate')
-    ax[i].set_title(feature)
-    ax[i].axhline(train.churn.mean(), ls='--', color='grey')
-}
-```
-```json
-{
-feature = 'n_services'
-target = 'churn'
-sns.barplot(x=feature, y=target, data=train)
-plt.xlabel('Number of Online Services per Customer with Internet')
-plt.ylabel('Churn Rate')
-plt.title("Relationship of Churn to Number of Online Services")
-plt.show()
-}
-```
 
-***
 ## Statistical Analysis
 
-### χ<sup>2</sup> test
- - Testing for independence between 2 categorical values.
- - Churn is categorical (i.e. can be 1 or 0)
- - n_services is categorical (i.e. can be integers from 0-6)
+### Correlation Test
+ - Used to check if two samples are related. They are often used for feature selection and multivariate analysis in data preprocessing and exploration.
+ - This test returns the correlation coefficient (r) nd a p-value (p)
+     - the correlation coefficient is used to measure how strong a relationship is between two variables
+     - the p-value is the probability of obtaining test results at least as extreme as the results actually observed, under the assumption that the null hypothesis is correct
+- I will run a correlation test for each of the following features against the target (tax_value):
+    - bathrooms
+    - bedrooms
+    - square_feet
+    - beds_and_baths
+    - beds_per_sqft
+    - baths_per_sqft
 
-- #### Hypothesis:
-    - The **null hypothesis** = Churn is independent of the number of online services per internet customer.
-    - the **alternate hypothesis** = We assume that there is an association between churn and the number of online services.
-
-- #### Confidence level and alpha value:
-    - I established a 95% confidence level
-    - alpha = 1 - confidence, therefore alpha is 0.05
-
-- #### Results:
-    - χ<sup>2</sup> = 242.75
-    - p-value = 1.45 x 10<sup>-49</sup>
-    - degrees of freedom = 6
+#### Hypothesis:
+- The null hypothesis (H<sub>0</sub>) is that there is no correlation between the two samples.
+- The alternate hypothesis (H<sub>1</sub>) is that there is a correlation between the two samples.
 
 
-We reject the null hypothesis and move forward with the alternative hypothesis: We assume that there is an association between churn and the number of online services
+#### Confidence level and alpha value:
+- I established a 95% confidence level
+- alpha = 1 - confidence, therefore alpha is 0.05
+
+#### Results:
+ - The numbers:
+ 
+ | Feature | r | p-value |
+ | ---- | ---- | ---- |
+ | bathrooms | 0.4431 | 0.0 |
+ | bedrooms | 0.2590 | 0.0 |
+ | square_feet | 0.5296 | 0.0 |
+ | beds_and_baths | 0.3871 | 0.0 |
+ | beds_per_sqft | -0.4896 | 0.0 |
+ | baths_per_sqft | -0.3893 | 0.0 |
+
+ - Summary:
+     - All correlation tests reject the H<sub>0</sub> because all p-values were less then the alpha of 0.05. 
+     - Based on the correlation coefficient, square feet of the property appears to be the best driver for increasing the tax value despite only having a medium positive correlation. 
+     - A medium negative correlation with beds_per_sqft is evident with the r = -0.4896. 
+     - Number of bathrooms is a better driver than number of bedrooms
+     - Number of bedrooms has the weakest correlation with 0.259
 
 ### T-test
+- A T-test allows me to compare a categorical and a continuous variable by comparing the mean of the continuous variable by subgroups based on the categorical variable
+- The t-test returns the t-statistic and the p-value:
+    - t-statistic: 
+        - Is the ratio of the departure of the estimated value of a parameter from its hypothesized value to its standard error. It is used in hypothesis testing via Student's t-test. 
+        - It is used in a t-test to determine if you should support or reject the null hypothesis
+        - t-statistic of 0 = H<sub>0</sub>
+    -  - the p-value:
+        - The probability of obtaining test results at least as extreme as the results actually observed, under the assumption that the null hypothesis is correct
+- I wanted to know if LA County's tax rate is greater than the tax rate of all 3 counties which by definition a 1 sample t-test: 
+    - Ventura County
+    - Orange County
+    - LA County
+- In order to run this test I would use the tax_rate_distribution() function to create a dataframe that include fips, tax amount, and tax value to calculate the tax rate and still have the county data (fips).
 
-- I am running a T-test to verify that there is a difference between having no additional online services vs. having any extra online service
 
-- #### Hypothesis:
-    - The **null hypothesis** = There is no difference between in the means of customers without any additional online services and  customers with any number of online services.
-    - the **alternate hypothesis** = There is a difference in the means of customers with online services and those without online services.
+#### Hypothesis:
+- The H<sub>0</sub> is that there is no difference in the means of the LA County Tax rates.
+- The H<sub>1</sub> is that the LA County Tax Rate is a different mean than the entire population.
 
-- #### Confidence level and alpha value:
-    - I established a 95% confidence level
-    - alpha = 1 - confidence, therefore alpha is 0.05
+#### Confidence level and alpha value:
+- I established a 95% confidence level
+- alpha = 1 - confidence, therefore alpha is 0.05
 
-- #### Results:
-    - t-score = -2.17
-    - p-value = 0.044
+#### Results:
+- The numvbers:
+    - t-statistic = 46.5759
+    - p-value = 0.0
+    
+- Summary;
+    - There is enough evidence to reject the H<sub>0</sub>:
+        - The t-statistic is far enough away from 0 (far enough from the H<sub>0</sub>)
+        - The p-value is 0.0 which is less than 0.05 
+    - I can move forward with the H<sub>1</sub> indicating that there is a difference in the tax_rates of LA County compared to all 3 counties.
 
 ***
 ## Modeling:
 
+Regression is supervised machine learning technique for predicting a continuous target variable. Since the target, tax_value, is a continuous variable regression model are the ideal choice for this project.
+
+
+
 ### Baseline
-- Began by importing my machine learning models
-```json
-{
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-}
-```
-- Then I established a baseline:
-    - First is to run a value_counts() on the column 'churn'
-    - Then add a most_frequent column to the train dataframe and set all values set to the highest value_count(). (in this case there were 2122 - 0's and 983 - 1's)
-    - Finally run the baseline_accuracy:
-```json
-{
-train["most_frequent"] = 0
-baseline_accuracy = (train.churn == train.most_frequent).mean()
-print(f'My baseline prediction is survived = 0')
-print(f'My baseline accuracy is: {baseline_accuracy:.2%}')
-}
-```
-    - The goal here is to create a model that beats the baseline:
-        - My baseline accuracy is: 68.34%
-        
-### Make: X_train, X_validate, X_test, y_train, y_validate, and y_test
-```json 
-{
-X_train = train.drop(columns=['churn','most_frequent','customer_id'])
-y_train = train.churn
 
-X_validate = validate.drop(columns=['churn','customer_id'])
-y_validate = validate.churn
 
-X_test = test.drop(columns=['churn','customer_id'])
-y_test = test.churn
-}
-```
-
-### kNN:
-```json
-{
-knn = KNeighborsClassifier(n_neighbors=5, weights='uniform')
-}
-```
-- #### Results:
-    - Accuracy of KNN classifier on training set n_neighbors set to 5: 0.71
-    - Accuracy of KNN classifier on validate set with n_neighbors set to 5: 0.70
-
-### Random Forest:
-```json
-{
-rf = RandomForestClassifier(bootstrap=True, 
-                            class_weight=None, 
-                            criterion='gini',
-                            min_samples_leaf=5,
-                            max_depth=50, 
-                            random_state=42)
-}
-```
-- #### Results
-    - Accuracy of random forest classifier on training set: 0.73
-    - Accuracy of random forest classifier on the validate set: 0.72
-
-### Decision Tree:
-```json
-{
-clf = DecisionTreeClassifier(max_depth=5, random_state=42)
-}
-```
-- #### Results
-    - Accuracy of Decision Tree classifier on training set: 0.73
-    - Accuracy of Decision Tree classifier on validate set: 0.72
-
-### Logistic Regression:
-```json
-{
-logit = LogisticRegression(penalty='l2', C=1, random_state=42, solver='lbfgs')    
-}
-```
-- #### Results
-    - Accuracy of on training set: 0.72
-    - Accuracy out-of-sample set: 0.73
-    - Accuracy of on test set: 0.72
+- Begin by creating columns with the predicted mean and median within the y_train and y_validate dataframes
     
-***    
-## Predictions CSV
-Make a new dataframe
 ```json
 {
-    new_df = df
+value_pred_mean = y_train.tax_value.mean()
+y_train['value_pred_mean'] = value_pred_mean
+y_validate['value_pred_mean'] = value_pred_mean
+
+value_pred_median = y_train.tax_value.median()
+y_train['value_pred_median'] = value_pred_median
+y_validate['value_pred_median'] = value_pred_median
 }
 ```
-Limit the features to the features being tested
-```json 
-{
-features = ['online_security', 'online_backup', 'device_protection', 'tech_support', 'streaming_tv', 'streaming_movies', 'dsl_internet', 'fiber_optic_internet', 'n_services']
-new_df_trimmed = new_df[new_df.internet_service_type != 'None']
-new_df_trimmed = new_df_trimmed.drop(columns=dropcols)
-new_df_trimmed = new_df_trimmed.assign(n_services = new_df_trimmed[new_df_trimmed.columns[1:7]].sum(axis=1))
-}
-```
-Remove customers without internet service into prediction dataframe
-```json
-{
-prediction_df = new_df[new_df.internet_service_type != "None"] 
-}
-```
-Run predictions on the Logistic Regression model
-```json
-{
-prediction_df['prediction'] = logit.predict(new_df_trimmed[features])   
-}
-``` 
+- Run a Root Mean Squared Error (RMSE) on both the mean and median
 
 ```json
 {
-predictions = prediction_df[['customer_id','prediction']]
-predictions.to_csv('predictions.csv')
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_mean) ** (1/2)
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_mean) ** (1/2)
+
+rmse_train_baseline_mean = rmse_train
+rmse_validate_baseline_mean = rmse_validate
+
+print("RMSE using Mean\nTrain/In-Sample: ", round(rmse_train, 2), 
+      "\nValidate/Out-of-Sample: ", round(rmse_validate, 2))
+
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_median) ** (1/2)
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_median) ** (1/2)
+
+rmse_train_baseline_median = rmse_train
+rmse_validate_baseline_median = rmse_validate
+
+print("RMSE using Median\nTrain/In-Sample: ", round(rmse_train, 2), 
+      "\nValidate/Out-of-Sample: ", round(rmse_validate, 2))
 }
 ```
+
+- Baseline: 
+    - RMSE using Mean
+        - Train/In-Sample:  **271194.48**
+        - Validate/Out-of-Sample:  **272149.78**
+    - RMSE using Median
+        - Train/In-Sample:  **276269.48** 
+        - Validate/Out-of-Sample:  **277446.89**
+        
+***
+
+### Models and R<sup>2</sup> Values:
+- Will run the following models:
+    - LinearRegression (OLS)
+    - TweedieRegressor (GLM)
+    - LassoLars
+    - Polynomial Regression
+- R<sup>2</sup> Value is the coefficient of determination, pronounced "R squared", is the proportion of the variance in the dependent variable that is predictable from the independent variable. 
+    - Essentially it is a statistical measure of how close the data are to the fitted regression line.
+#### LinearRegression (OLS)
+
+```json 
+{
+lm = LinearRegression(normalize=True)
+
+
+lm.fit(X_train, y_train.tax_value)
+
+y_train['value_pred_lm'] = lm.predict(X_train)
+
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_lm) ** (1/2)
+
+y_validate['value_pred_lm'] = lm.predict(X_validate)
+
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_lm) ** (1/2)
+
+print("RMSE for OLS using LinearRegression\nTraining/In-Sample: ", round(rmse_train, 4), 
+      "\nValidation/Out-of-Sample: ", round(rmse_validate, 4))
+}
+```
+- RMSE for OLS using LinearRegression:
+    - Training/In-Sample:  **217503.9051**
+    - Validation/Out-of-Sample:  **220468.9564**
+- R<sup>2</sup> Value = **0.3437**
+
+
+### TweedieRegressor (GLM):
+```json
+{
+glm = TweedieRegressor(power=0, alpha=0)
+
+glm.fit(X_train, y_train.tax_value)
+
+y_train['value_pred_glm'] = glm.predict(X_train)
+
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_glm) ** (1/2)
+
+y_validate['value_pred_glm'] = glm.predict(X_validate)
+
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_glm) ** (1/2)
+
+print("RMSE for GLM using Tweedie, power=1 & alpha=0\nTraining/In-Sample: ", round(rmse_train,4), 
+      "\nValidation/Out-of-Sample: ", round(rmse_validate, 4))
+}
+```
+- RMSE for GLM using Tweedie, power=1 & alpha=0
+    - Training/In-Sample:  **217516.6069**
+    - Validation/Out-of-Sample:  **220563.6468**
+- R<sup>2</sup> Value = **0.3432**
+
+### LassoLars:
+```json
+{
+lars = LassoLars(alpha=1.0)
+
+lars.fit(X_train, y_train.tax_value)
+
+y_train['value_pred_lars'] = lars.predict(X_train)
+
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_lars) ** (1/2)
+
+y_validate['value_pred_lars'] = lars.predict(X_validate)
+
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_lars) ** (1/2)
+
+print("RMSE for Lasso + Lars\nTraining/In-Sample: ", round(rmse_train, 4), 
+      "\nValidation/Out-of-Sample: ", round(rmse_validate,4))
+}
+```
+- RMSE for Lasso + Lars
+    - Training/In-Sample:  **217521.8752**
+    - Validation/Out-of-Sample:  **220536.3882**
+- R<sup>2</sup> Value = **0.3433**
+
+### Polynomial Regression:
+```json
+{
+pf = PolynomialFeatures(degree=2)
+
+X_train_degree2 = pf.fit_transform(X_train)
+
+X_validate_degree2 = pf.transform(X_validate)
+X_test_degree2 = pf.transform(X_test)
+
+
+lm2 = LinearRegression(normalize=True)
+
+lm2.fit(X_train_degree2, y_train.tax_value)
+
+y_train['value_pred_lm2'] = lm2.predict(X_train_degree2)
+
+rmse_train = mean_squared_error(y_train.tax_value, y_train.value_pred_lm2) ** (1/2)
+
+y_validate['value_pred_lm2'] = lm2.predict(X_validate_degree2)
+
+rmse_validate = mean_squared_error(y_validate.tax_value, y_validate.value_pred_lm2) ** (1/2)
+
+print("RMSE for Polynomial Model, degrees=2\nTraining/In-Sample: ", round(rmse_train,4), 
+      "\nValidation/Out-of-Sample: ", round(rmse_validate,4))
+}
+```
+- RMSE for Polynomial Model, degrees=2
+    - Training/In-Sample:  **211227.5585**
+    - Validation/Out-of-Sample:  **214109.6968**
+- R<sup>2</sup> Value = **0.3810**
+
+
+## Selecting the Best Model:
+
+| Model | Training/In Sample RMSE | Validation/Out of Sample RMSE | R<sup>2</sup> Value |
+| ---- | ----| ---- | ---- |
+| Baseline | 271194.48 | 272149.78 | -2.1456 x 10<sup>-5</sup> |
+| Linear Regression | 217503.9051 | 220468.9564 | 0.3437 |
+| Tweedie Regressor (GLM) | 217516.6069 | 220563.6468 | 0.3432 |
+| Lasso Lars | 217521.8752 | 220536.3882 | 0.3433 |
+| Polynomial Regression | 211227.5585 | 214109.6968 | 0.3810 |
+
+- The best model will have the lowest error and the highest R<sup>2</sup>
+- In this case the best model is the Polynomial Regression Model
+
+## Testing the Model
+```json
+{
+y_test = pd.DataFrame(y_test)
+
+y_test['value_pred_lm2'] = lm2.predict(X_test_degree2)
+
+rmse_test = mean_squared_error(y_test.tax_value, y_test.value_pred_lm2) ** (1/2)
+
+print("RMSE for LassoLars Model\nOut-of-Sample Performance: ", rmse_test)    
+
+}
+```
+- RMSE for LassoLars Model
+     - Out-of-Sample Performance:  **213615.6212**
+
 
 ***
+
 ## Key Takaways
 
-- It is clear that fewer people churn when they have more online services. 
-
-- What can we do now?
-
-    - Promote online services into bundled packages:
-        - For instance: the "Security package" will contain: online_security, online_backup, device_protection and tech_support
-        - Along with "Streaming package" that will contain: streaming_tv, streaming_movies, and tech_support as well.
-
-- With additional time dedicated to this project:
-
-    - Investigate fiber optic customers in greater detail and look at possible combinations of factors that might be driving churn within that group.
-    - Investigate our pricing structure of all internet service types and online services.
-    - Make improvements to this report with more comments, markdown cells, and summary tables.
-    - Make improvements to the cooresponding readme.md for this github containing project description with a more in depth explanation of how someone else can recreate this project and findings, and key takeaways from this project.
-    - Add models to test varying hyperparameters and features to improve model performance.
+- 

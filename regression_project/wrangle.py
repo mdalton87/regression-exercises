@@ -79,14 +79,13 @@ This functions creates a dataframe from the zillow dataset in the Codeup SQL dat
     thresh = df.shape[0] - (df.shape[0] * .15)
     df = df.dropna(axis=1,thresh=thresh)
     
-    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'fips', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt']
+    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt']
     df = df[features]
     df.set_index('parcelid', inplace=True)
-    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'fips', 'latitude', 'longitude', 'year_built', 'tax_value']
+    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'latitude', 'longitude', 'year_built', 'tax_value']
     
     df = df.dropna()
     
-    df.fips = df.fips.astype(int)
     df.year_built = df.year_built.astype(int)
         
     df = remove_outliers(df, 'square_feet', 2.5)
@@ -115,8 +114,8 @@ This function creates the dataframe used to calculate the tax distribution rate 
     
     df['tax_rate'] = (df.tax_amount / df.tax_value)
     
-    df = remove_outliers(df, 'tax_rate', 1.5)
-    df = remove_outliers(df, 'tax_value', 1.5)
+    df = remove_outliers(df, 'tax_rate', 2.5)
+    df = remove_outliers(df, 'tax_value', 2.5)
     
     return df
 
