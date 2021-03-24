@@ -147,12 +147,13 @@ The goals of the project are to answer the questions and deliver the following:
 
 ## Data Exploration:
 - wrangle.py 
+
 | Function Name | Definition |
-| ----- | ----- |
+| ------------ | ------------- |
 | select_kbest | This function takes in a dataframe, the target feature as a string, and an interger (k) that must be less than or equal to the number of features and returns the (k) best features |
 | rfe | This function takes in a dataframe, the target feature as a string, and an interger (k) that must be less than or equal to the number of features and returns the best features by making a model, removing the weakest feature, then, making a new model, and removing the weakest feature, and so on. |
 | train_validate_test_split | This function takes in a dataframe, the target feature as a string, and a seed interger and returns split data: train, validate, test, X_train, y_train, X_validate, y_validate, X_test, y_test |
-| get_object_cols() | This function takes in a dataframe and identifies the columns that are object types and returns a list of those column names. |
+| get_object_cols() | This function takes in a dataframe and identifies the columns that are object types and returns a list of those column names |
 | get_numeric_cols(X_train, object_cols) | This function takes in a dataframe and list of object column names and returns a list of all other columns names, the non-objects. |
 | min_max_scale(X_train, X_validate, X_test, numeric_cols) | This function takes in 3 dataframes with the same columns, a list of numeric column names (because the scaler can only work with numeric columns), and fits a min-max scaler to the first dataframe and transforms all 3 dataframes using that scaler. It returns 3 dataframes with the same column names and scaled values. 
 
