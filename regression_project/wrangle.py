@@ -79,10 +79,10 @@ This functions creates a dataframe from the zillow dataset in the Codeup SQL dat
     thresh = df.shape[0] - (df.shape[0] * .15)
     df = df.dropna(axis=1,thresh=thresh)
     
-    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt','lotsizesquarefeet']
+    features = ['parcelid', 'bathroomcnt', 'bedroomcnt', 'calculatedfinishedsquarefeet', 'latitude', 'longitude', 'yearbuilt', 'taxvaluedollarcnt']
     df = df[features]
     df.set_index('parcelid', inplace=True)
-    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'latitude', 'longitude', 'year_built', 'tax_value','lot_sqft']
+    df.columns = ['bathrooms', 'bedrooms', 'square_feet', 'latitude', 'longitude', 'year_built', 'tax_value']
     
     df = df.dropna()
     
@@ -95,7 +95,6 @@ This functions creates a dataframe from the zillow dataset in the Codeup SQL dat
     df['beds_and_baths'] = (df.bedrooms + df.bathrooms)
     df['beds_per_sqft'] = (df.bedrooms / df.square_feet)
     df['baths_per_sqft'] = (df.bathrooms / df.square_feet)
-    df['sqft_to_lot_sqft'] = (df.square_feet / df.lot_sqft)
     
     return df
 

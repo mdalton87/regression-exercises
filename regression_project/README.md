@@ -12,7 +12,7 @@
 [[Conclusion](#conclusion)]
 ___
 
-***
+
 ## <a name="project_description"></a>Project Description:
 [[Back to top](#top)]
 - The purpose of this project is to build a machine learning model that predicts the value of single unit properties that the tax district assesses using the property data from properties sold and purchased from May-August, 2017.
@@ -71,12 +71,33 @@ The goals of the project are to answer the questions and deliver the following:
 - A completed dataset with no null values
 
 ***
+
 ## <a name="findings"></a>Key Findings:
 [[Back to top](#top)]
-- My best model was the Polynomial Regression model with a power of 2, 
+
+### Explore:
+- Data was messy
+    - 27 features have > 20,000 null values
+    - 31 features > 10,000 null values
+- Zip codes did not match the county zip codes
+    - The largest zip code number in all 3 counties is 93591 in LA County
+    - This dataset begins at 95982
+
+
+### Stats
+- Surprisingly the number of bathrooms were a better driver for value than the bedrooms.
+- Square feet correlates best with the tax value of the chosen features.
+- beds and baths was not as powerful of a driver than I anticipated, better than bedrooms
+
+### Modeling:
+- My best model was the Polynomial Regression model with a power of 2:
+    - RMSE of 213615.6212 from a baseline of 272149.78
+        - RMSE improvement of 58534.1588
+    - R<sup>2</sup> Value of the model, 38.1%, indicates there is an improvement over the baseline but not a very strong fit overall.
 
 
 ***
+
 ## <a name="dictionary"></a>Data Dictionary  
 [[Back to top](#top)]
 
@@ -206,8 +227,8 @@ The goals of the project are to answer the questions and deliver the following:
  | bedrooms | 0.2590 | 0.0 |
  | square_feet | 0.5296 | 0.0 |
  | beds_and_baths | 0.3871 | 0.0 |
- | beds_per_sqft | -0.4896 | 0.0 |
- | baths_per_sqft | -0.3893 | 0.0 |
+ | beds_per_sqft | -0.3647 | 0.0 |
+ | baths_per_sqft | -0.152 | 0.0 |
 
  - Summary:
      - All correlation tests reject the H<sub>0</sub> because all p-values were less then the alpha of 0.05. 
@@ -460,4 +481,18 @@ print("RMSE for LassoLars Model\nOut-of-Sample Performance: ", rmse_test)
 ## <a name="conclusion"></a>Conclusion:
 [[Back to top](#top)]
 
- 
+It is clear that square feet and number of bathrooms are good drivers of the property value within this dataset.
+
+However, with over 60 features, the majority of them are useless due to the lack of data included.
+
+I managed to create a model that out performs the baseline model by lowering the RMSE by 58,534 points from 272,150 to 213,616. This model also fits the data with an R<sup>2</sup> value of 38.1%. 
+
+What can we do now?
+
+- Collect, or more accurately, fill in more of the data on these properties in order to strengthen the model.
+- In this case less can be more. 
+- Breakup the data into commercial and residential, along with the features associated with each zone.
+
+With additional time dedicated to this project:
+- I would like to explore the longitude and latitude effect on the propery value
+- If more data was filled in to this dataset, I would like to explore features like the air conditioning type and lot size.
