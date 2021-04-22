@@ -256,6 +256,8 @@ def train_validate_test(df, target):
     
     return X_train, y_train, X_validate, y_validate, X_test, y_test
 
+
+
 def get_numeric_X_cols(X_train, object_cols):
     '''
     takes in a dataframe and list of object column names
